@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HMAC-SHA256 Generator</title>
+  <style>
+    :root{
+      --bg: #0b1220;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.08);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.66);
+      --border: rgba(255,255,255,.14);
+      --focus: rgba(110,168,255,.65);
+      --shadow: 0 10px 35px rgba(0,0,0,.45);
+      --radius: 14px;
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% 0%, rgba(110,168,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(160,110,255,.18), transparent 60%),
+        radial-gradient(900px 700px at 40% 110%, rgba(90,230,180,.12), transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 28px 16px;
+    }
+    .wrap{
+      width: min(980px, 100%);
+      display:grid;
+      gap: 16px;
+    }
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 16px;
+      padding: 2px 2px 10px 2px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: .2px;
+    }
+    .sub{
+      margin: 6px 0 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      max-width: 58ch;
+    }
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+      header{ flex-direction:column; align-items:flex-start; }
+      .sub{ max-width: 100%; }
+    }
+    .col{
+      padding: 18px;
+    }
+    .col + .col{
+      border-left: 1px solid var(--border);
+    }
+    @media (max-width: 860px){
+      .col + .col{
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+    }
+    label{
+      display:block;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0 0 8px 0;
+    }
+    textarea, input[type="text"]{
+      width: 100%;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 12px;
+      outline: none;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    textarea{
+      min-height: 140px;
+      resize: vertical;
+    }
+    textarea:focus, input[type="text"]:focus{
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px rgba(110,168,255,.18);
+    }
+    .row{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,.18);
+      background: var(--panel2);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size: 13px;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ border-color: rgba(255,255,255,.28); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: rgba(110,168,255,.22);
+      border-color: rgba(110,168,255,.45);
+    }
+    .btn.danger{
+      background: rgba(255,110,110,.14);
+      border-color: rgba(255,110,110,.35);
+    }
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.16);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .toggle input{ transform: translateY(1px); }
+    .hint{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .outHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .outTitle{
+      display:flex;
+      flex-direction:column;
+      gap: 3px;
+    }
+    .outTitle b{
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .status{
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 16px;
+      text-align:right;
+    }
+    .outputBox{
+      position: relative;
+    }
+    .output{
+      width: 100%;
+      min-height: 140px;
+      padding-right: 110px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .copyBtn{
+      position:absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .footer{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+    }
+    .dot{
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: rgba(90,230,180,.8);
+      box-shadow: 0 0 0 3px rgba(90,230,180,.12);
+    }
+    a{ color: rgba(110,168,255,.9); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>HMAC-SHA256 Generator</h1>
+        <p class="sub">
+          Compute an HMAC-SHA256 digest from a plain text message and a secret key using the browser's Web Crypto API.
+          Output is hex-encoded.
+        </p>
+      </div>
+      <div class="pill" title="Runs locally in your browser">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Local-only • No network calls</span>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="grid">
+        <div class="col">
+          <label for="message">Plain text</label>
+          <textarea id="message" placeholder="Enter message / payload here..."></textarea>
+
+          <div style="height:12px"></div>
+
+          <label for="key">Secret key</label>
+          <input id="key" type="text" placeholder="Enter secret key here..." autocomplete="off" />
+
+          <div class="row">
+            <div class="toggle">
+              <input id="uppercase" type="checkbox" />
+              <label for="uppercase" style="margin:0; cursor:pointer;">Uppercase output</label>
+            </div>
+
+            <button id="btnGenerate" class="btn primary" type="button">Generate</button>
+            <button id="btnClear" class="btn danger" type="button">Clear</button>
+          </div>
+
+          <div class="hint">
+            Tips: the digest updates when you click <b>Generate</b>. For very long inputs, this may take a moment.
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="outHead">
+            <div class="outTitle">
+              <b>HMAC-SHA256 (hex)</b>
+              <span class="status" id="status"></span>
+            </div>
+          </div>
+
+          <div class="outputBox">
+            <textarea id="output" class="output" readonly placeholder="Result will appear here..."></textarea>
+            <button id="btnCopy" class="btn copyBtn" type="button">Copy</button>
+          </div>
+
+          <div class="hint">
+            Clipboard requires a secure context (HTTPS or localhost). If blocked, you can still manually select and copy.
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Algorithm: <b>HMAC</b> with <b>SHA-256</b>, output: hex</span>
+        <span>Uses Web Crypto API (<code>crypto.subtle</code>)</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const messageEl = $("message");
+    const keyEl = $("key");
+    const uppercaseEl = $("uppercase");
+    const outputEl = $("output");
+    const statusEl = $("status");
+
+    const btnGenerate = $("btnGenerate");
+    const btnClear = $("btnClear");
+    const btnCopy = $("btnCopy");
+
+    function setStatus(text, isError = false) {
+      statusEl.textContent = text || "";
+      statusEl.style.color = isError ? "rgba(255,160,160,.95)" : "rgba(255,255,255,.66)";
+    }
+
+    function hexFromArrayBuffer(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let hex = "";
+      for (let i = 0; i < bytes.length; i++) {
+        const h = bytes[i].toString(16).padStart(2, "0");
+        hex += h;
+      }
+      return hex;
+    }
+
+    async function hmacSha256Hex(message, secretKey) {
+      if (!window.crypto?.subtle) {
+        throw new Error("Web Crypto API is not available in this browser.");
+      }
+
+      const enc = new TextEncoder();
+      const keyData = enc.encode(secretKey);
+      const msgData = enc.encode(message);
+
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyData,
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+      );
+
+      const sig = await crypto.subtle.sign("HMAC", cryptoKey, msgData);
+      return hexFromArrayBuffer(sig);
+    }
+
+    async function generate() {
+      setStatus("");
+      outputEl.value = "";
+
+      const message = messageEl.value ?? "";
+      const key = keyEl.value ?? "";
+
+      if (!key.trim()) {
+        setStatus("Secret key is required.", true);
+        keyEl.focus();
+        return;
+      }
+
+      btnGenerate.disabled = true;
+      btnGenerate.textContent = "Generating...";
+
+      try {
+        let hex = await hmacSha256Hex(message, key);
+        if (uppercaseEl.checked) hex = hex.toUpperCase();
+        outputEl.value = hex;
+        setStatus("Done.");
+      } catch (err) {
+        setStatus(err?.message || "Failed to generate HMAC.", true);
+      } finally {
+        btnGenerate.disabled = false;
+        btnGenerate.textContent = "Generate";
+      }
+    }
+
+    async function copyToClipboard() {
+      const text = outputEl.value;
+      if (!text) {
+        setStatus("Nothing to copy.", true);
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("Copied to clipboard.");
+      } catch {
+        // Fallback: select text for manual copy
+        outputEl.focus();
+        outputEl.select();
+        setStatus("Clipboard blocked — text selected. Press Ctrl+C / Cmd+C.", true);
+      }
+    }
+
+    function clearAll() {
+      messageEl.value = "";
+      keyEl.value = "";
+      uppercaseEl.checked = false;
+      outputEl.value = "";
+      setStatus("");
+      messageEl.focus();
+    }
+
+    btnGenerate.addEventListener("click", generate);
+    btnCopy.addEventListener("click", copyToClipboard);
+    btnClear.addEventListener("click", clearAll);
+
+    // QoL: Ctrl/Cmd+Enter to generate
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        generate();
+      }
+    });
+  </script>
+</body>
+</html>
